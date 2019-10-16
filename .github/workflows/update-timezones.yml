@@ -18,10 +18,21 @@ jobs:
       run: npm install
     - name: Update timezone data
       run: grunt data:2014c
-    - name: Check for changes
-      run: git diff-index --quiet HEAD
+#     - name: Check for changes
+#       run: git diff-index --quiet HEAD
+    - name: Grab old package version
+      id: old_version
+      run: echo "##[set-output name=version;]$(npm view moment-timezone version)"
+    - name: Update package version
+      run: npm version patch
+    - name: Grab new package version
+      id: new_version
+      run: echo "##[set-output name=version;]$(npm view moment-timezone version)"
+    - name: Copy package version
+      run: |
+        cat composer.json | sed -e "s/${steps.old_version.outputs.version}/${steps.new_version.outputs.version}/" > composer.json.updated
+        mv composer.json.updated composer.json
     - name: Create Pull Request
-      if: failure()
       uses: peter-evans/create-pull-request@v1.5.2
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
