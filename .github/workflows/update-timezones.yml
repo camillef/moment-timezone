@@ -19,10 +19,9 @@ jobs:
     - name: Update timezone data
       run: grunt data:2014c
     - name: Check for changes
-      id: changes
       run: git diff-index --quiet HEAD
     - name: Create Pull Request
-      if: steps.changes.outputs.exit-code == 1
+      if: failure()
       uses: peter-evans/create-pull-request@v1.5.2
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
