@@ -14,8 +14,6 @@ jobs:
     
     steps:
     - uses: actions/checkout@v1
-    - name: npm install
-      run: npm install
     - name: Grab old package version
       id: old_version
       run: echo "##[set-output name=version;]$(npm view moment-timezone version)"
@@ -28,6 +26,8 @@ jobs:
       run: |
         cat composer.json | sed -e "s/${steps.old_version.outputs.version}/${steps.new_version.outputs.version}/" > composer.json.updated
         mv composer.json.updated composer.json
+    - name: npm install
+      run: npm install
     - name: Update timezone data
       run: grunt data:2014c
 #     - name: Check for changes
