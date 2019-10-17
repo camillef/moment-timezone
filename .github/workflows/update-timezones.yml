@@ -17,11 +17,10 @@ jobs:
     - name: Grab old package version
       id: old_version
       run: echo "##[set-output name=version;]$(npm view moment-timezone version)"
-    - name: Update package version
-      run: npm version patch
     - name: Grab new package version
       id: new_version
-      run: echo "##[set-output name=version;]$(npm view moment-timezone version)"
+      run: |
+        echo "##[set-output name=version;]$(npm version --no-git-tag-version patch | sed -e "s/v//")"
     - name: Copy package version
       run: |
         cat composer.json | sed -e "s/${steps.old_version.outputs.version}/${steps.new_version.outputs.version}/" > composer.json.updated
