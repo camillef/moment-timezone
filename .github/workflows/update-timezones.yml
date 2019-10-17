@@ -28,7 +28,11 @@ jobs:
     - name: Copy package version
       run: |
         cat composer.json | sed -e "s/${OLD_VERSION}/${NEW_VERSION}/" > composer.json.updated
+        cat moment-timezone.js | sed -e "s/${OLD_VERSION}/${NEW_VERSION}/" > moment-timezone.js.updated
+        cat moment-timezone-utils.js | sed -e "s/${OLD_VERSION}/${NEW_VERSION}/" > moment-timezone-utils.js.updated
         mv composer.json.updated composer.json
+        mv moment-timezone.js.updated moment-timezone.js
+        mv moment-timezone-utils.js.updated moment-timezone-utils.js
     - name: Set output variables
       id: vars
       run: |
