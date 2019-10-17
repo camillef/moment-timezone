@@ -18,12 +18,18 @@ jobs:
       run: npm install
 #     - name: Pull latest timezone data
 #       run: grunt data:2014c
+    - name: Check for updates to timezone data
+      id: check_for_updates
+      run: echo ::set-output name=has_updates::"$(git status --porcelain|awk '{print "true"}')"
     - name: Grab old package version
+      if: steps.check_for_updates.outputs.has_updates
       run: echo ::set-env name=OLD_VERSION::"$(npm view moment-timezone version)"
     - name: Grab new package version
+      if: steps.check_for_updates.outputs.has_updates
       run: |
         echo ::set-env name=NEW_VERSION::"$(npm version --no-git-tag-version patch | sed -e "s/v//")"
     - name: Copy package version
+      if: steps.check_for_updates.outputs.has_updates
       run: |
         cat composer.json | sed -e "s/${OLD_VERSION}/${NEW_VERSION}/" > composer.json.updated
         cat moment-timezone.js | sed -e "s/${OLD_VERSION}/${NEW_VERSION}/" > moment-timezone.js.updated
@@ -33,15 +39,10 @@ jobs:
         mv moment-timezone-utils.js.updated moment-timezone-utils.js
     - name: Set output variables
       id: vars
+      if: steps.check_for_updates.outputs.has_updates
       run: |
         echo ::set-output name=pr_branch::"release_${NEW_VERSION}"
         echo ::set-output name=pr_title::"Release ${NEW_VERSION}"
-    - name: Check for updates to timezone data
-      id: check_for_updates
-      run: echo ::set-output name=has_updates::"$(git status --porcelain|awk '{print "true"}')"
-    - name: Dump GitHub context
-      run: echo "CHANGES"
-      if: steps.check_for_updates.outputs.has_updates
     - name: Create Pull Request
       uses: peter-evans/create-pull-request@v1.5.2
       if: steps.check_for_updates.outputs.has_updates
