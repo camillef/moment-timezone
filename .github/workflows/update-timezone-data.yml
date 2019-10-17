@@ -16,11 +16,12 @@ jobs:
     - uses: actions/checkout@v1
     - name: npm install
       run: npm install
-#     - name: Pull latest timezone data
-#       run: grunt data:2014c
+    - name: Pull latest timezone data
+      run: grunt data
     - name: Check for updates to timezone data
       id: check_for_updates
-      run: echo ::set-output name=has_updates::"$(git status --porcelain|grep -v package-lock.json|awk '{print "true"}')"
+      run: |
+        echo ::set-output name=has_updates::"$(git status --porcelain|grep -v package-lock.json|awk '{print "true"}')"
     - name: Grab old package version
       if: steps.check_for_updates.outputs.has_updates
       run: echo ::set-env name=OLD_VERSION::"$(npm view moment-timezone version)"
