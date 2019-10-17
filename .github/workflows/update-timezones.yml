@@ -38,8 +38,11 @@ jobs:
         echo ::set-output name=pr_title::"Release ${NEW_VERSION}"
     - name: Check for changes
       run: echo ::set-env name=CHANGES::"$(git status --porcelain)"
+    - name: Dump GitHub context
+      env:
+        GITHUB_CONTEXT: ${{ toJson(github) }}
+      run: echo "$GITHUB_CONTEXT"
     - name: Create Pull Request
-      if: CHANGES
       uses: peter-evans/create-pull-request@v1.5.2
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
