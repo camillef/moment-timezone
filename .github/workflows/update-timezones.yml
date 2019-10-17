@@ -16,28 +16,31 @@ jobs:
     - uses: actions/checkout@v1
     - name: npm install
       run: npm install
-    - name: Update timezone data
-      run: grunt data:2014c
+#     - name: Update timezone data
+#       run: grunt data:2014c
 #     - name: Check for changes
 #       run: git diff-index --quiet HEAD
     - name: Grab old package version
-      id: old_version
-      run: echo ::set-output name=version::"$(npm view moment-timezone version)"
+      run: echo ::set-env name=OLD_VERSION::"$(npm view moment-timezone version)"
     - name: Grab new package version
-      id: new_version
       run: |
-        echo ::set-output name=version::"$(npm version --no-git-tag-version patch | sed -e "s/v//")"
-    - name: Dump steps context
-      env:
-        STEPS_CONTEXT: ${{ toJson(steps) }}
-      run: echo "$STEPS_CONTEXT"
+        echo ::set-env name=NEW_VERSION::"$(npm version --no-git-tag-version patch | sed -e "s/v//")"
     - name: Copy package version
       run: |
-        cat composer.json | sed -e "s/${steps.old_version.outputs.version}/${steps.new_version.outputs.version}/" > composer.json.updated
+        cat composer.json | sed -e "s/${OLD_VERSION}/${NEW_VERSION}/" > composer.json.updated
         mv composer.json.updated composer.json
+    - name: Set output variables
+      id: vars
+      run: |
+        echo ::set-output name=pr_branch::"release_${NEW_VERSION}"
+        echo ::set-output name=pr_title::"Release ${NEW_VERSION}"
+        echo ::set-output name=pr_body::"Update timezone data to latest from iana.org/time-zones"
     - name: Create Pull Request
       uses: peter-evans/create-pull-request@v1.5.2
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        PULL_REQUEST_BRANCH: ${{ steps.vars.outputs.pr_branch }}
+        PULL_REQUEST_TITLE: ${{ steps.vars.outputs.pr_title }}
+        PULL_REQUEST_BODY: ${{ steps.vars.outputs.pr_body }}
         
     
