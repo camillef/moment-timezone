@@ -34,13 +34,13 @@ jobs:
       run: |
         echo ::set-output name=pr_branch::"release_${NEW_VERSION}"
         echo ::set-output name=pr_title::"Release ${NEW_VERSION}"
-        echo ::set-output name=pr_body::"Update timezone data to latest from iana.org/time-zones"
     - name: Create Pull Request
       uses: peter-evans/create-pull-request@v1.5.2
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         PULL_REQUEST_BRANCH: ${{ steps.vars.outputs.pr_branch }}
         PULL_REQUEST_TITLE: ${{ steps.vars.outputs.pr_title }}
-        PULL_REQUEST_BODY: ${{ steps.vars.outputs.pr_body }}
+        PULL_REQUEST_BODY: Update timezone data to latest from iana.org/time-zones
+        COMMIT_MESSAGE: Update timezone data
         
     
