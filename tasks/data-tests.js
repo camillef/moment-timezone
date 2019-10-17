@@ -49,7 +49,7 @@ function yearTests (zone) {
 }
 
 function intro (name) {
-	var helpers = path.relative(path.dirname('zones/' + name), 'helpers/helpers').replace(/\\/g, '/');
+	var helpers = path.relative(path.dirname('zones/' + name), 'helpers/helpers');
 	return '"use strict";\n\nvar helpers = require("' + helpers + '");\n\nexports["' + name + '"] = {\n\n';
 }
 
@@ -75,18 +75,21 @@ function guessTests (zone) {
 
 module.exports = function (grunt) {
 	grunt.registerTask('data-tests', '8. Create unit tests from data-collect.', function () {
-		tz.load(grunt.file.readJSON('data/packed/latest.json'));
-		var zones = grunt.file.readJSON('temp/collect/latest.json');
+		try {
+			tz.load(grunt.file.readJSON('data/packed/latest.json'));
+			var zones = grunt.file.readJSON('temp/collect/latest.json');
 
-		zones.forEach(function (zone) {
-			var data = intro(zone.name) + guessTests(zone) + yearTests(zone) + '\n};',
-				dest = path.join('tests/zones', zone.name.toLowerCase() + '.js');
+			zones.forEach(function (zone) {
+				var data = intro(zone.name) + guessTests(zone) + yearTests(zone) + '\n};',
+					dest = path.join('tests/zones', zone.name.toLowerCase() + '.js');
 
-			grunt.file.mkdir(path.dirname(dest));
-			grunt.file.write(dest, data);
-			grunt.verbose.ok("Created " + zone.name + " tests.");
-		});
-
+				grunt.file.mkdir(path.dirname(dest));
+				grunt.file.write(dest, data);
+				grunt.verbose.ok("Created " + zone.name + " tests.");
+			});
+		  } catch(err) {
+			grunt.log.writeln(err);
+		  }
 
 		grunt.log.ok('Created tests');
 	});
