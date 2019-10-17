@@ -14,23 +14,27 @@ jobs:
     
     steps:
     - uses: actions/checkout@v1
-    - name: Grab old package version
-      id: old_version
-      run: echo "##[set-output name=version;]$(npm view moment-timezone version)"
-    - name: Grab new package version
-      id: new_version
-      run: |
-        echo "##[set-output name=version;]$(npm version --no-git-tag-version patch | sed -e "s/v//")"
-    - name: Copy package version
-      run: |
-        cat composer.json | sed -e "s/${steps.old_version.outputs.version}/${steps.new_version.outputs.version}/" > composer.json.updated
-        mv composer.json.updated composer.json
     - name: npm install
       run: npm install
     - name: Update timezone data
       run: grunt data:2014c
 #     - name: Check for changes
 #       run: git diff-index --quiet HEAD
+    - name: Grab old package version
+      id: old_version
+      run: echo ::set-output name=version::"$(npm view moment-timezone version)"
+    - name: Grab new package version
+      id: new_version
+      run: |
+        echo ::set-output name=version::"$(npm version --no-git-tag-version patch | sed -e "s/v//")"
+    - name: Dump steps context
+      env:
+        STEPS_CONTEXT: ${{ toJson(steps) }}
+      run: echo "$STEPS_CONTEXT"
+    - name: Copy package version
+      run: |
+        cat composer.json | sed -e "s/${steps.old_version.outputs.version}/${steps.new_version.outputs.version}/" > composer.json.updated
+        mv composer.json.updated composer.json
     - name: Create Pull Request
       uses: peter-evans/create-pull-request@v1.5.2
       env:
