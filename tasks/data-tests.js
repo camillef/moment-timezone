@@ -74,11 +74,14 @@ function guessTests (zone) {
 }
 
 module.exports = function (grunt) {
+	grunt.option('stack', true);
 	grunt.registerTask('data-tests', '8. Create unit tests from data-collect.', function () {
 		tz.load(grunt.file.readJSON('data/packed/latest.json'));
 		var zones = grunt.file.readJSON('temp/collect/latest.json');
+		grunt.log.ok(zones.length);
 
 		zones.forEach(function (zone) {
+			grunt.log.ok(zone.name);
 			var data = intro(zone.name) + guessTests(zone) + yearTests(zone) + '\n};',
 				dest = path.join('tests/zones', zone.name.toLowerCase() + '.js');
 
@@ -86,7 +89,6 @@ module.exports = function (grunt) {
 			grunt.file.write(dest, data);
 			grunt.verbose.ok("Created " + zone.name + " tests.");
 		});
-
 
 		grunt.log.ok('Created tests');
 	});

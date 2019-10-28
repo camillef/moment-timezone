@@ -1,0 +1,57 @@
+name: Update timezone data
+
+on:
+  push:
+    branches:
+      - action-update-timezones
+#   schedule:
+#   - cron: '0 2 * * *'
+
+jobs:
+  update:
+
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v1
+    - name: npm install
+      run: npm install
+    - name: Pull latest timezone data
+      run: grunt data
+    - name: Check for updates to timezone data
+      id: check_for_updates
+      run: |
+        echo ::set-output name=has_updates::"$(git status --porcelain|grep -v package-lock.json|awk '{print "true"}')"
+    - name: Grab old package version
+      if: steps.check_for_updates.outputs.has_updates
+      run: echo ::set-env name=OLD_VERSION::"$(npm view moment-timezone version)"
+    - name: Grab new package version
+      if: steps.check_for_updates.outputs.has_updates
+      run: |
+        echo ::set-env name=NEW_VERSION::"$(npm version --no-git-tag-version patch | sed -e "s/v//")"
+    - name: Copy package version
+      if: steps.check_for_updates.outputs.has_updates
+      run: |
+        cat composer.json | sed -e "s/${OLD_VERSION}/${NEW_VERSION}/" > composer.json.updated
+        cat moment-timezone.js | sed -e "s/${OLD_VERSION}/${NEW_VERSION}/" > moment-timezone.js.updated
+        cat moment-timezone-utils.js | sed -e "s/${OLD_VERSION}/${NEW_VERSION}/" > moment-timezone-utils.js.updated
+        mv composer.json.updated composer.json
+        mv moment-timezone.js.updated moment-timezone.js
+        mv moment-timezone-utils.js.updated moment-timezone-utils.js
+    - name: Set output variables
+      id: vars
+      if: steps.check_for_updates.outputs.has_updates
+      run: |
+        echo ::set-output name=pr_branch::"release_${NEW_VERSION}"
+        echo ::set-output name=pr_title::"Release ${NEW_VERSION}"
+    - name: Create Pull Request
+      uses: peter-evans/create-pull-request@v1.5.2
+      if: steps.check_for_updates.outputs.has_updates
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        PULL_REQUEST_BRANCH: ${{ steps.vars.outputs.pr_branch }}
+        PULL_REQUEST_TITLE: ${{ steps.vars.outputs.pr_title }}
+        PULL_REQUEST_BODY: Update timezone data to latest from iana.org/time-zones
+        COMMIT_MESSAGE: Update timezone data
+        
+    
